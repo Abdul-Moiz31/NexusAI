@@ -1,0 +1,22 @@
+[project]
+name = "nexus-ai"
+version = "0.1.0"
+description = "Advanced AI Research & Tutoring System"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi",
+    "uvicorn",
+    "sqlmodel",
+    "pydantic-settings",
+    "langchain",
+    "langchain-openai",
+    "langchain-community",
+    "chromadb",
+    "python-multipart",
+    "httpx",
+    "jinja2",
+    "python-dotenv"
+]
+
+[tool.setuptools]
+packages = ["app"]
