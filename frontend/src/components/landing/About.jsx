@@ -1,62 +1,103 @@
 import { motion } from "framer-motion";
+import { Brain, Code2, Cpu, Database } from "lucide-react";
 
 const About = () => {
+  const stats = [
+    { icon: Brain, label: "AI Models", value: "GPT-4o" },
+    { icon: Code2, label: "Framework", value: "LangChain" },
+    { icon: Database, label: "Vector DB", value: "ChromaDB" },
+    { icon: Cpu, label: "Orchestration", value: "LangGraph" },
+  ];
+
   return (
-    <section id="about" className="py-24 bg-white">
+    <section id="about" className="py-24 bg-[#0d1117]">
       <div className="container mx-auto px-6">
-        <div className="flex flex-col md:flex-row items-center gap-16">
-          <div className="md:w-1/2">
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
-              <div className="absolute -top-4 -left-4 w-24 h-24 bg-blue-100 rounded-full blur-2xl opacity-60" />
-              <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-purple-100 rounded-full blur-2xl opacity-60" />
-              <img
-                src="https://images.unsplash.com/photo-1620712943543-bcc4688e7485?q=80&w=2565&auto=format&fit=crop"
-                alt="AI Technology"
-                className="relative rounded-2xl shadow-2xl z-10 w-full object-cover h-[400px]"
-              />
-            </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="max-w-4xl mx-auto"
+        >
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <span className="text-emerald-400 text-sm font-semibold uppercase tracking-wider">
+              About NexusAI
+            </span>
+            <h2 className="text-4xl md:text-5xl font-bold text-white mt-4 mb-6">
+              Production-Grade AI Engineering
+            </h2>
+            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+              NexusAI is a comprehensive hands-on masterclass in AI Engineering. 
+              Learn to build production-ready AI systems from the ground up.
+            </p>
           </div>
 
-          <div className="md:w-1/2">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <h2 className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">About NexusAI</h2>
-              <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Bridging the Gap Between Theory and Practice</h3>
-              
-              <p className="text-gray-600 mb-6 leading-relaxed">
-                NexusAI isn't just another chatbot. It's a comprehensive educational platform designed to demonstrate the cutting-edge capabilities of modern AI Engineering.
-              </p>
-              
-              <ul className="space-y-4 mb-8">
-                {[
-                  "Production-grade FastAPI Backend",
-                  "Advanced RAG with Vector Databases",
-                  "Multi-Agent Orchestration via LangGraph",
-                  "Tool Calling & Streamed Responses"
-                ].map((item, index) => (
-                  <li key={index} className="flex items-center space-x-3 text-gray-700">
-                    <span className="w-2 h-2 bg-primary rounded-full" />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <a href="#features" className="text-primary font-semibold hover:text-blue-700 transition-colors inline-flex items-center space-x-2">
-                <span>Explore Features</span>
-              </a>
-            </motion.div>
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
+            {stats.map((stat, idx) => {
+              const Icon = stat.icon;
+              return (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: idx * 0.1 }}
+                  viewport={{ once: true }}
+                  className="bg-[#161b22] border border-[#30363d] rounded-xl p-6 text-center hover:border-emerald-500/50 transition-colors"
+                >
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Icon className="w-6 h-6 text-emerald-400" />
+                  </div>
+                  <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
+                  <div className="text-sm text-gray-500">{stat.label}</div>
+                </motion.div>
+              );
+            })}
           </div>
-        </div>
+
+          {/* Description */}
+          <div className="bg-[#161b22] border border-[#30363d] rounded-2xl p-8 md:p-12">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-4">What You'll Learn</h3>
+                <ul className="space-y-3">
+                  {[
+                    "FastAPI Backend Development",
+                    "LLM Integration & Streaming",
+                    "RAG (Retrieval Augmented Generation)",
+                    "AI Agents with Tool Calling",
+                    "Multi-Agent Orchestration",
+                    "Vector Databases & Embeddings",
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-center gap-3 text-gray-300">
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-4">Tech Stack</h3>
+                <ul className="space-y-3">
+                  {[
+                    "Python + FastAPI",
+                    "React + Tailwind CSS",
+                    "OpenAI GPT-4o",
+                    "LangChain & LangGraph",
+                    "ChromaDB Vector Store",
+                    "SQLite Database",
+                  ].map((item, idx) => (
+                    <li key={idx} className="flex items-center gap-3 text-gray-300">
+                      <div className="w-2 h-2 bg-cyan-500 rounded-full" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

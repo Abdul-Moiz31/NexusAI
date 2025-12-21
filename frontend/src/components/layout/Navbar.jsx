@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, Bot, Zap, Book, Phone } from "lucide-react";
+import { Menu, X, Brain, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
@@ -19,48 +19,51 @@ const Navbar = () => {
     { title: "Home", href: "/" },
     { title: "About", href: "#about" },
     { title: "Features", href: "#features" },
-    { title: "Chat", href: "/chat", primary: true },
+    { title: "Contact", href: "#contact" },
   ];
 
   return (
     <nav
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/80 backdrop-blur-md shadow-md py-4"
+          ? "bg-[#0d1117]/90 backdrop-blur-md border-b border-[#30363d] py-4"
           : "bg-transparent py-6"
       }`}
     >
       <div className="container mx-auto px-6 flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="flex items-center space-x-2 text-2xl font-bold text-gray-800">
-          <div className="bg-primary/10 p-2 rounded-lg">
-            <Bot className="w-8 h-8 text-primary" />
+        <Link to="/" className="flex items-center gap-3 group">
+          <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20 group-hover:shadow-emerald-500/40 transition-shadow">
+            <Brain className="w-6 h-6 text-white" />
           </div>
-          <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+          <span className="text-xl font-bold text-white group-hover:text-emerald-400 transition-colors">
             NexusAI
           </span>
         </Link>
 
         {/* Desktop Menu */}
-        <div className="hidden md:flex items-center space-x-8">
+        <div className="hidden md:flex items-center gap-8">
           {navLinks.map((link, index) => (
-            <Link
+            <a
               key={index}
-              to={link.href}
-              className={`text-sm font-medium transition-colors hover:text-primary ${
-                link.primary
-                  ? "px-5 py-2.5 bg-primary text-white rounded-full hover:bg-primary/90 shadow-lg shadow-primary/25"
-                  : "text-gray-600"
-              }`}
+              href={link.href}
+              className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
             >
               {link.title}
-            </Link>
+            </a>
           ))}
+          <Link
+            to="/chat"
+            className="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition-all shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Start Chat</span>
+          </Link>
         </div>
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-gray-600 focus:outline-none"
+          className="md:hidden text-gray-400 hover:text-white focus:outline-none"
           onClick={() => setIsOpen(!isOpen)}
         >
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -74,21 +77,27 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-white border-b"
+            className="md:hidden bg-[#161b22] border-b border-[#30363d]"
           >
             <div className="px-6 py-4 space-y-4 flex flex-col">
               {navLinks.map((link, index) => (
-                <Link
+                <a
                   key={index}
-                  to={link.href}
-                  className={`text-sm font-medium ${
-                    link.primary ? "text-primary font-bold" : "text-gray-600"
-                  }`}
+                  href={link.href}
+                  className="text-sm font-medium text-gray-400 hover:text-white transition-colors"
                   onClick={() => setIsOpen(false)}
                 >
                   {link.title}
-                </Link>
+                </a>
               ))}
+              <Link
+                to="/chat"
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-medium transition-all"
+                onClick={() => setIsOpen(false)}
+              >
+                <Sparkles className="w-4 h-4" />
+                <span>Start Chat</span>
+              </Link>
             </div>
           </motion.div>
         )}

@@ -1,11 +1,16 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { 
   Send, Menu, X, Plus, MessageSquare, Upload, FileText, 
   Bot, Brain, Network, BookOpen, ChevronDown, Check, Trash2,
-  Sparkles, Zap, Settings, Home
+  Sparkles, Zap, Settings, Home, Edit2, Clock, Paperclip,
+  History, FolderOpen, Archive, LogOut, RefreshCw, Lightbulb,
+  AlertTriangle, HelpCircle, Copy, MoreHorizontal
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MessageBubble from './MessageBubble';
+
+// API Base URL
+const API_BASE = '/api/v1';
 
 // Mode configurations
 const MODES = [
@@ -13,7 +18,7 @@ const MODES = [
     id: 'chat', 
     name: 'Basic Chat', 
     icon: MessageSquare, 
-    color: 'blue',
+    color: 'emerald',
     description: 'Simple conversation with GPT-4o',
     endpoint: '/api/v1/chat/stream',
     streaming: true
@@ -22,7 +27,7 @@ const MODES = [
     id: 'agent', 
     name: 'Agent (Tools)', 
     icon: Zap, 
-    color: 'amber',
+    color: 'emerald',
     description: 'AI with Calculator, Search & Knowledge Base',
     endpoint: '/api/v1/agent/chat',
     streaming: false
@@ -31,7 +36,7 @@ const MODES = [
     id: 'graph', 
     name: 'Multi-Agent', 
     icon: Network, 
-    color: 'purple',
+    color: 'emerald',
     description: 'Supervisor routes to Researcher or Tutor',
     endpoint: '/api/v1/agent/graph',
     streaming: false
@@ -47,7 +52,39 @@ const MODES = [
   }
 ];
 
+// Welcome screen examples
+const WELCOME_CARDS = [
+  {
+    icon: Lightbulb,
+    title: 'Examples',
+    items: [
+      'Explain quantum computing in simple terms',
+      'Got any creative ideas for a 10 year old birthday?',
+      'How do I make an HTTP request in JavaScript?'
+    ]
+  },
+  {
+    icon: Zap,
+    title: 'Capabilities',
+    items: [
+      'Remembers what user said earlier in the conversation',
+      'Allows user to provide follow-up corrections',
+      'Trained to decline inappropriate requests'
+    ]
+  },
+  {
+    icon: AlertTriangle,
+    title: 'Limitations',
+    items: [
+      'May occasionally generate incorrect information',
+      'May occasionally produce harmful instructions',
+      'Limited knowledge of world and events after 2021'
+    ]
+  }
+];
+
 const ChatInterface = () => {
+  // State
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -56,21 +93,32 @@ const ChatInterface = () => {
   const [modeDropdownOpen, setModeDropdownOpen] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
-  const [chatHistory, setChatHistory] = useState([]);
+  
+  // Database-backed state
+  const [conversations, setConversations] = useState([]);
+  const [currentConversation, setCurrentConversation] = useState(null);
+  const [loadingConversations, setLoadingConversations] = useState(true);
+  const [editingTitle, setEditingTitle] = useState(null);
+  const [editTitleValue, setEditTitleValue] = useState('');
+  const [activeSection, setActiveSection] = useState('history');
+  
+  // Refs
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropdownRef = useRef(null);
+  const editInputRef = useRef(null);
 
-  // Welcome message based on mode
+  // Fetch conversations on mount
   useEffect(() => {
-    const welcomeMessages = {
-      chat: "👋 Hello! I'm NexusAI. Ask me anything and I'll help you out!",
-      agent: "🛠️ Agent Mode activated! I can use tools like Calculator, Web Search, and Knowledge Base to help you.",
-      graph: "🤖 Multi-Agent System ready! I'll route your request to the best specialist - Researcher or Tutor.",
-      rag: "📚 RAG Mode enabled! Upload documents first, then ask questions about them."
-    };
-    setMessages([{ role: 'assistant', content: welcomeMessages[currentMode.id] }]);
-  }, [currentMode]);
+    fetchConversations();
+  }, []);
+
+  // Load conversation when selected
+  useEffect(() => {
+    if (currentConversation) {
+      loadConversation(currentConversation.id);
+    }
+  }, [currentConversation?.id]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -83,13 +131,97 @@ const ChatInterface = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const scrollToBottom = () => {
+  // Auto-focus edit input
+  useEffect(() => {
+    if (editingTitle && editInputRef.current) {
+      editInputRef.current.focus();
+    }
+  }, [editingTitle]);
+
+  const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, scrollToBottom]);
+
+  // API Functions
+  const fetchConversations = async () => {
+    try {
+      setLoadingConversations(true);
+      const response = await fetch(`${API_BASE}/conversations`);
+      const data = await response.json();
+      setConversations(data);
+    } catch (error) {
+      console.error('Failed to fetch conversations:', error);
+    } finally {
+      setLoadingConversations(false);
+    }
+  };
+
+  const loadConversation = async (id) => {
+    try {
+      const response = await fetch(`${API_BASE}/conversations/${id}`);
+      const data = await response.json();
+      setMessages(data.messages.map(m => ({
+        role: m.role,
+        content: m.content
+      })));
+      const mode = MODES.find(m => m.id === data.mode) || MODES[0];
+      setCurrentMode(mode);
+    } catch (error) {
+      console.error('Failed to load conversation:', error);
+    }
+  };
+
+  const createConversation = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/conversations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'New Conversation', mode: currentMode.id })
+      });
+      const data = await response.json();
+      setConversations(prev => [data, ...prev]);
+      setCurrentConversation(data);
+      return data;
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      return null;
+    }
+  };
+
+  const updateConversationTitle = async (id, title) => {
+    try {
+      await fetch(`${API_BASE}/conversations/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title })
+      });
+      setConversations(prev => prev.map(c => 
+        c.id === id ? { ...c, title } : c
+      ));
+      if (currentConversation?.id === id) {
+        setCurrentConversation(prev => ({ ...prev, title }));
+      }
+    } catch (error) {
+      console.error('Failed to update conversation:', error);
+    }
+  };
+
+  const deleteConversation = async (id) => {
+    try {
+      await fetch(`${API_BASE}/conversations/${id}`, { method: 'DELETE' });
+      setConversations(prev => prev.filter(c => c.id !== id));
+      if (currentConversation?.id === id) {
+        setCurrentConversation(null);
+        setMessages([]);
+      }
+    } catch (error) {
+      console.error('Failed to delete conversation:', error);
+    }
+  };
 
   // Handle file upload for RAG
   const handleFileUpload = async (e) => {
@@ -101,7 +233,7 @@ const ChatInterface = () => {
     formData.append('file', file);
 
     try {
-      const response = await fetch('/api/v1/rag/ingest', {
+      const response = await fetch(`${API_BASE}/rag/ingest`, {
         method: 'POST',
         body: formData
       });
@@ -140,9 +272,16 @@ const ChatInterface = () => {
     setInput('');
     setLoading(true);
 
+    let convId = currentConversation?.id;
+    if (!convId) {
+      const newConv = await createConversation();
+      if (newConv) {
+        convId = newConv.id;
+      }
+    }
+
     try {
       if (currentMode.streaming) {
-        // Streaming mode (Basic Chat)
         const response = await fetch(currentMode.endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -151,31 +290,56 @@ const ChatInterface = () => {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let fullResponse = '';
         
-        // Add empty assistant message first
         setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
           const chunk = decoder.decode(value);
+          fullResponse += chunk;
           
           setMessages(prev => {
             const newMessages = [...prev];
             const lastMsg = newMessages[newMessages.length - 1];
             if (lastMsg.role === 'assistant') {
-              lastMsg.content += chunk;
+              lastMsg.content = fullResponse;
             }
             return [...newMessages];
           });
         }
+
+        if (convId) {
+          const saveResponse = await fetch(`${API_BASE}/chat/save-streamed`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversation_id: convId,
+              user_message: currentInput,
+              assistant_message: fullResponse
+            })
+          });
+          const saveData = await saveResponse.json();
+          
+          if (saveData.title && currentConversation) {
+            setCurrentConversation(prev => ({ ...prev, title: saveData.title }));
+            setConversations(prev => prev.map(c => 
+              c.id === convId ? { ...c, title: saveData.title } : c
+            ));
+          }
+        }
       } else {
-        // Non-streaming modes (Agent, Graph, RAG)
         let response;
         
         if (currentMode.id === 'rag') {
-          response = await fetch(`${currentMode.endpoint}?query=${encodeURIComponent(currentInput)}`, {
-            method: 'POST'
+          response = await fetch(currentMode.endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              query: currentInput,
+              conversation_id: convId
+            })
           });
         } else {
           response = await fetch(currentMode.endpoint, {
@@ -183,7 +347,8 @@ const ChatInterface = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
               message: currentInput,
-              history: chatHistory
+              history: messages.filter(m => m.role !== 'system'),
+              conversation_id: convId
             })
           });
         }
@@ -191,19 +356,12 @@ const ChatInterface = () => {
         const data = await response.json();
         let reply = data.response || JSON.stringify(data);
         
-        // Add sources for RAG
-        if (currentMode.id === 'rag' && data.sources) {
+        if (currentMode.id === 'rag' && data.sources && data.sources.length > 0) {
           reply += `\n\n📎 **Sources:** ${data.sources.join(', ')}`;
         }
         
         setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
-        
-        // Update chat history for agent mode
-        setChatHistory(prev => [
-          ...prev,
-          { role: 'user', content: currentInput },
-          { role: 'assistant', content: reply }
-        ]);
+        fetchConversations();
       }
     } catch (error) {
       console.error("Chat error:", error);
@@ -216,32 +374,45 @@ const ChatInterface = () => {
     }
   };
 
-  // Start new chat
   const handleNewChat = () => {
-    setMessages([{ 
-      role: 'assistant', 
-      content: `🔄 Starting fresh! How can I help you in **${currentMode.name}** mode?`
-    }]);
-    setChatHistory([]);
+    setCurrentConversation(null);
+    setMessages([]);
   };
 
-  // Get mode color classes
-  const getModeColors = (mode, type = 'bg') => {
-    const colors = {
-      blue: { bg: 'bg-blue-500', light: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
-      amber: { bg: 'bg-amber-500', light: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200' },
-      purple: { bg: 'bg-purple-500', light: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' },
-      emerald: { bg: 'bg-emerald-500', light: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' }
-    };
-    return colors[mode.color][type];
+  const handleSelectConversation = (conv) => {
+    setCurrentConversation(conv);
+    setSidebarOpen(false);
+  };
+
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = now - date;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Just now';
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString();
+  };
+
+  const formatDate = () => {
+    return new Date().toLocaleDateString('en-US', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
+    <div className="flex h-screen bg-[#0d1117] overflow-hidden">
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-20 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-20 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -249,290 +420,452 @@ const ChatInterface = () => {
       {/* Sidebar */}
       <aside 
         className={`${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } fixed lg:relative z-30 w-72 h-full bg-slate-900 text-white transition-transform duration-300 ease-in-out flex flex-col`}
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } fixed lg:relative z-30 w-72 h-full bg-[#161b22] border-r border-[#30363d] transition-transform duration-300 ease-in-out flex flex-col`}
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-slate-700 flex justify-between items-center">
-          <Link to="/" className="text-xl font-bold flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <span className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-              <Brain className="w-5 h-5" />
-            </span>
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              NexusAI
-            </span>
+        <div className="p-4 border-b border-[#30363d]">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+              <Brain className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-lg font-bold text-white group-hover:text-emerald-400 transition-colors">NexusAI</h1>
+              <p className="text-xs text-gray-500">Advanced AI Assistant</p>
+            </div>
           </Link>
-          <button 
-            onClick={() => setSidebarOpen(false)} 
-            className="lg:hidden p-2 hover:bg-slate-800 rounded-lg transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </div>
 
         {/* New Chat Button */}
         <div className="p-4">
           <button 
             onClick={handleNewChat}
-            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded-xl transition-all group"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all font-medium shadow-lg shadow-emerald-500/20"
           >
-            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-            <span className="font-medium">New Chat</span>
+            <Plus className="w-5 h-5" />
+            <span>New Chat</span>
           </button>
         </div>
 
-        {/* Mode Selector */}
-        <div className="px-4 mb-4">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Mode</div>
+        {/* Menu Section */}
+        <div className="px-4 mb-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Menu</p>
           <div className="space-y-1">
-            {MODES.map((mode) => {
-              const Icon = mode.icon;
-              const isActive = currentMode.id === mode.id;
-              return (
-                <button
-                  key={mode.id}
-                  onClick={() => setCurrentMode(mode)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isActive 
-                      ? `${getModeColors(mode, 'bg')} text-white shadow-lg` 
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-sm font-medium">{mode.name}</span>
-                  {isActive && <Check className="w-4 h-4 ml-auto" />}
-                </button>
-              );
-            })}
+            <button 
+              onClick={() => setActiveSection('history')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                activeSection === 'history' 
+                  ? 'bg-[#21262d] text-emerald-400' 
+                  : 'text-gray-400 hover:bg-[#21262d] hover:text-white'
+              }`}
+            >
+              <History className="w-5 h-5" />
+              <span className="text-sm font-medium">History</span>
+            </button>
+            <button 
+              onClick={() => setActiveSection('collection')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                activeSection === 'collection' 
+                  ? 'bg-[#21262d] text-emerald-400' 
+                  : 'text-gray-400 hover:bg-[#21262d] hover:text-white'
+              }`}
+            >
+              <FolderOpen className="w-5 h-5" />
+              <span className="text-sm font-medium">Collection</span>
+            </button>
+            <button 
+              onClick={() => setActiveSection('bin')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                activeSection === 'bin' 
+                  ? 'bg-[#21262d] text-emerald-400' 
+                  : 'text-gray-400 hover:bg-[#21262d] hover:text-white'
+              }`}
+            >
+              <Archive className="w-5 h-5" />
+              <span className="text-sm font-medium">Bin</span>
+            </button>
           </div>
         </div>
 
-        {/* Document Upload (for RAG mode) */}
-        {currentMode.id === 'rag' && (
-          <div className="px-4 mb-4">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Knowledge Base</div>
-            <input 
-              type="file" 
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              accept=".pdf,.txt"
-              className="hidden"
-            />
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-slate-600 hover:border-emerald-500 hover:bg-slate-800 rounded-xl transition-all text-slate-300 hover:text-emerald-400 disabled:opacity-50"
-            >
-              {uploading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm">Uploading...</span>
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4" />
-                  <span className="text-sm">Upload PDF / TXT</span>
-                </>
-              )}
-            </button>
-            
-            {/* Uploaded files list */}
-            {uploadedFiles.length > 0 && (
-              <div className="mt-3 space-y-2">
-                {uploadedFiles.map((file, idx) => (
-                  <div key={idx} className="flex items-center gap-2 px-3 py-2 bg-slate-800 rounded-lg text-xs">
-                    <FileText className="w-4 h-4 text-emerald-400" />
-                    <span className="truncate flex-1 text-slate-300">{file.name}</span>
-                    <span className="text-slate-500">{file.chunks} chunks</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Chat History */}
+        {/* Conversations List */}
         <div className="flex-1 overflow-y-auto px-4 py-2">
-          <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">History</div>
-          <div className="space-y-1">
-            {[1, 2, 3].map((i) => (
-              <button 
-                key={i} 
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-left text-slate-300 hover:bg-slate-800 rounded-lg group transition-colors"
-              >
-                <MessageSquare className="w-4 h-4 text-slate-500 group-hover:text-slate-300" />
-                <span className="truncate text-sm">Conversation {i}</span>
-              </button>
-            ))}
-          </div>
+          {loadingConversations ? (
+            <div className="space-y-2">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="h-12 bg-[#21262d] rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : conversations.length === 0 ? (
+            <div className="text-center py-8">
+              <MessageSquare className="w-8 h-8 text-gray-600 mx-auto mb-2" />
+              <p className="text-gray-500 text-sm">No conversations yet</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {conversations.map((conv) => {
+                const isActive = currentConversation?.id === conv.id;
+                
+                return (
+                  <div 
+                    key={conv.id} 
+                    className={`group relative rounded-lg transition-all ${
+                      isActive ? 'bg-[#21262d]' : 'hover:bg-[#21262d]'
+                    }`}
+                  >
+                    {editingTitle === conv.id ? (
+                      <div className="px-3 py-2">
+                        <input
+                          ref={editInputRef}
+                          type="text"
+                          value={editTitleValue}
+                          onChange={(e) => setEditTitleValue(e.target.value)}
+                          onBlur={() => {
+                            if (editTitleValue.trim()) {
+                              updateConversationTitle(conv.id, editTitleValue.trim());
+                            }
+                            setEditingTitle(null);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              if (editTitleValue.trim()) {
+                                updateConversationTitle(conv.id, editTitleValue.trim());
+                              }
+                              setEditingTitle(null);
+                            }
+                            if (e.key === 'Escape') setEditingTitle(null);
+                          }}
+                          className="w-full bg-[#0d1117] text-white text-sm px-2 py-1 rounded border border-emerald-500 outline-none"
+                        />
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={() => handleSelectConversation(conv)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
+                      >
+                        <MessageSquare className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-emerald-400' : 'text-gray-500'}`} />
+                        <div className="flex-1 min-w-0">
+                          <div className={`text-sm truncate ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                            {conv.title}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {formatTime(conv.updated_at)}
+                          </div>
+                        </div>
+                      </button>
+                    )}
+                    
+                    {!editingTitle && (
+                      <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditTitleValue(conv.title);
+                            setEditingTitle(conv.id);
+                          }}
+                          className="p-1 hover:bg-[#30363d] rounded text-gray-400 hover:text-white"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (confirm('Delete this conversation?')) {
+                              deleteConversation(conv.id);
+                            }
+                          }}
+                          className="p-1 hover:bg-red-500/20 rounded text-gray-400 hover:text-red-400"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* General Section */}
+        <div className="px-4 py-2 border-t border-[#30363d]">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">General</p>
+          <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:bg-[#21262d] hover:text-white transition-all">
+            <Settings className="w-5 h-5" />
+            <span className="text-sm font-medium">Settings</span>
+          </button>
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-700">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+        <div className="p-4 border-t border-[#30363d]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
               U
             </div>
-            <div className="flex-1">
-              <div className="text-sm font-medium">User</div>
-              <div className="text-xs text-slate-400">Free Plan</div>
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-white truncate">User</div>
+              <div className="text-xs text-gray-500">user@example.com</div>
             </div>
-            <button className="p-2 hover:bg-slate-800 rounded-lg transition-colors text-slate-400 hover:text-white">
-              <Settings className="w-4 h-4" />
+          </div>
+          <div className="flex gap-2">
+            <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#21262d] hover:bg-[#30363d] rounded-lg text-gray-400 hover:text-white transition-all text-sm">
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+            <button className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[#21262d] hover:bg-[#30363d] rounded-lg text-gray-400 hover:text-white transition-all text-sm">
+              <RefreshCw className="w-4 h-4" />
+              <span>Switch</span>
             </button>
           </div>
         </div>
       </aside>
 
       {/* Main Chat Area */}
-      <main className={`flex-1 flex flex-col w-full h-full transition-all duration-300`}>
+      <main className="flex-1 flex flex-col w-full h-full min-w-0 bg-[#0d1117]">
         {/* Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 lg:px-6 sticky top-0 z-10 shadow-sm">
+        <header className="h-14 sm:h-16 bg-[#161b22] border-b border-[#30363d] flex items-center justify-between px-4 sm:px-6 sticky top-0 z-10">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 hover:bg-slate-100 rounded-lg text-slate-600 transition-colors"
+              className="lg:hidden p-2 hover:bg-[#21262d] rounded-lg text-gray-400 transition-colors"
             >
               <Menu className="w-5 h-5" />
             </button>
             
-            {/* Mode Dropdown in Header */}
-            <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${getModeColors(currentMode, 'light')} ${getModeColors(currentMode, 'border')} ${getModeColors(currentMode, 'text')}`}
-              >
-                <currentMode.icon className="w-4 h-4" />
-                <span className="font-medium text-sm hidden sm:block">{currentMode.name}</span>
-                <ChevronDown className={`w-4 h-4 transition-transform ${modeDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-              
-              {modeDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-2 z-50">
-                  {MODES.map((mode) => {
-                    const Icon = mode.icon;
-                    const isActive = currentMode.id === mode.id;
-                    return (
-                      <button
-                        key={mode.id}
-                        onClick={() => {
-                          setCurrentMode(mode);
-                          setModeDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-slate-50 transition-colors ${isActive ? 'bg-slate-50' : ''}`}
-                      >
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getModeColors(mode, 'light')} ${getModeColors(mode, 'text')}`}>
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div className="text-left flex-1">
-                          <div className="font-medium text-slate-800 text-sm">{mode.name}</div>
-                          <div className="text-xs text-slate-500">{mode.description}</div>
-                        </div>
-                        {isActive && <Check className={`w-4 h-4 mt-1 ${getModeColors(mode, 'text')}`} />}
-                      </button>
-                    );
-                  })}
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-[#21262d] rounded-lg flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-gray-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-semibold text-white text-sm sm:text-base">
+                    {currentConversation?.title || 'New Chat'}
+                  </h2>
+                  <button className="p-1 hover:bg-[#21262d] rounded text-gray-500 hover:text-white">
+                    <Edit2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
-              )}
+                <p className="text-xs text-gray-500">{formatDate()}</p>
+              </div>
             </div>
           </div>
           
           <div className="flex items-center gap-2">
+            <button className="p-2 hover:bg-[#21262d] rounded-lg text-gray-400 hover:text-white transition-colors">
+              <Copy className="w-5 h-5" />
+            </button>
+            <button className="p-2 hover:bg-[#21262d] rounded-lg text-gray-400 hover:text-white transition-colors">
+              <Upload className="w-5 h-5" />
+            </button>
+            <button className="p-2 hover:bg-[#21262d] rounded-lg text-gray-400 hover:text-white transition-colors">
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
             <Link 
               to="/" 
-              className="p-2 hover:bg-slate-100 rounded-lg text-slate-500 hover:text-slate-700 transition-colors"
+              className="p-2 hover:bg-[#21262d] rounded-lg text-gray-400 hover:text-white transition-colors"
             >
               <Home className="w-5 h-5" />
             </Link>
-            <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${getModeColors(currentMode, 'light')} ${getModeColors(currentMode, 'text')}`}>
-              GPT-4o
-            </span>
           </div>
         </header>
 
         {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="max-w-3xl mx-auto px-4 py-8">
-            {messages.length === 0 ? (
-              <div className="text-center py-20">
-                <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center ${getModeColors(currentMode, 'light')}`}>
-                  <currentMode.icon className={`w-8 h-8 ${getModeColors(currentMode, 'text')}`} />
-                </div>
-                <h2 className="text-xl font-semibold text-slate-800 mb-2">Welcome to {currentMode.name}</h2>
-                <p className="text-slate-500">{currentMode.description}</p>
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {messages.length === 0 ? (
+            /* Welcome Screen */
+            <div className="h-full flex flex-col items-center justify-center px-4 py-8">
+              <div className="text-center mb-12">
+                <h1 className="text-4xl sm:text-5xl font-bold text-white mb-2">NexusAI</h1>
+                <p className="text-gray-500">Your Advanced AI Assistant</p>
               </div>
-            ) : (
-              <>
-                {messages.map((msg, idx) => (
-                  <MessageBubble key={idx} role={msg.role} content={msg.content} />
-                ))}
-              </>
-            )}
-            
-            {loading && (
-              <div className="flex justify-start mb-6">
-                <div className="flex items-start gap-4">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${getModeColors(currentMode, 'light')} ${getModeColors(currentMode, 'text')}`}>
-                    <Bot className="w-5 h-5" />
+              
+              {/* Feature Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl w-full px-4">
+                {WELCOME_CARDS.map((card, idx) => {
+                  const Icon = card.icon;
+                  return (
+                    <div 
+                      key={idx}
+                      className="bg-[#161b22] border border-[#30363d] rounded-xl p-4 hover:border-emerald-500/50 transition-all"
+                    >
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-8 bg-[#21262d] rounded-lg flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-emerald-400" />
+                        </div>
+                        <h3 className="font-semibold text-white">{card.title}</h3>
+                      </div>
+                      <div className="space-y-2">
+                        {card.items.map((item, itemIdx) => (
+                          <button
+                            key={itemIdx}
+                            onClick={() => setInput(item)}
+                            className="w-full text-left p-3 bg-[#21262d] hover:bg-[#30363d] rounded-lg text-sm text-gray-400 hover:text-white transition-all"
+                          >
+                            "{item}" →
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* RAG Upload hint */}
+              {currentMode.id === 'rag' && (
+                <div className="mt-8">
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".pdf,.txt"
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="flex items-center gap-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition-all disabled:opacity-50"
+                  >
+                    {uploading ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Uploading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="w-5 h-5" />
+                        <span>Upload Document for RAG</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Messages */
+            <div className="max-w-3xl mx-auto px-4 py-6">
+              {messages.map((msg, idx) => (
+                <MessageBubble key={idx} role={msg.role} content={msg.content} />
+              ))}
+              
+              {loading && (
+                <div className="flex gap-4 mb-6">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-600 flex items-center justify-center flex-shrink-0">
+                    <Bot className="w-5 h-5 text-white" />
                   </div>
-                  <div className="bg-white border border-slate-200 px-5 py-4 rounded-2xl rounded-tl-none shadow-sm">
+                  <div className="bg-[#161b22] border border-[#30363d] px-4 py-3 rounded-xl">
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-2 h-2 ${getModeColors(currentMode, 'bg')} rounded-full animate-bounce`} style={{ animationDelay: '0ms' }} />
-                      <span className={`w-2 h-2 ${getModeColors(currentMode, 'bg')} rounded-full animate-bounce`} style={{ animationDelay: '150ms' }} />
-                      <span className={`w-2 h-2 ${getModeColors(currentMode, 'bg')} rounded-full animate-bounce`} style={{ animationDelay: '300ms' }} />
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+          )}
         </div>
 
         {/* Input Area */}
-        <div className="p-4 bg-gradient-to-t from-slate-100 to-transparent">
+        <div className="p-4 bg-gradient-to-t from-[#0d1117] via-[#0d1117] to-transparent">
           <div className="max-w-3xl mx-auto">
-            <form onSubmit={handleSend} className="relative">
-              <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-                {/* Upload hint for RAG mode */}
-                {currentMode.id === 'rag' && uploadedFiles.length === 0 && (
-                  <div className="px-4 py-2 bg-emerald-50 border-b border-emerald-100 flex items-center gap-2 text-emerald-700 text-sm">
-                    <Upload className="w-4 h-4" />
-                    <span>Upload a document first to use RAG mode</span>
+            <form onSubmit={handleSend}>
+              <div className="bg-[#161b22] border border-[#30363d] rounded-xl overflow-hidden">
+                {/* Uploaded files display */}
+                {uploadedFiles.length > 0 && currentMode.id === 'rag' && (
+                  <div className="px-4 py-2 border-b border-[#30363d] flex flex-wrap gap-2">
+                    {uploadedFiles.map((file, idx) => (
+                      <div key={idx} className="flex items-center gap-2 px-2 py-1 bg-[#21262d] rounded-lg text-xs">
+                        <FileText className="w-3 h-3 text-emerald-400" />
+                        <span className="text-gray-300">{file.name}</span>
+                        <span className="text-gray-500">({file.chunks} chunks)</span>
+                      </div>
+                    ))}
                   </div>
                 )}
                 
                 <div className="flex items-center gap-2 p-2">
-                  {/* Upload button (always visible in RAG mode) */}
-                  {currentMode.id === 'rag' && (
+                  {/* Attachment button */}
+                  <button 
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-2.5 hover:bg-[#21262d] rounded-lg text-gray-500 hover:text-white transition-colors"
+                  >
+                    <Paperclip className="w-5 h-5" />
+                  </button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    onChange={handleFileUpload}
+                    accept=".pdf,.txt"
+                    className="hidden"
+                  />
+                  
+                  {/* Mode Selector */}
+                  <div className="relative" ref={dropdownRef}>
                     <button 
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                      className="p-3 hover:bg-slate-100 rounded-xl text-slate-500 hover:text-emerald-600 transition-colors disabled:opacity-50"
+                      onClick={() => setModeDropdownOpen(!modeDropdownOpen)}
+                      className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white text-sm font-medium transition-all"
                     >
-                      <Upload className="w-5 h-5" />
+                      <currentMode.icon className="w-4 h-4" />
+                      <span className="hidden sm:inline">{currentMode.name}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${modeDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
-                  )}
+                    
+                    {modeDropdownOpen && (
+                      <div className="absolute bottom-full left-0 mb-2 w-64 bg-[#161b22] border border-[#30363d] rounded-xl shadow-xl py-2 z-50">
+                        {MODES.map((mode) => {
+                          const Icon = mode.icon;
+                          const isActive = currentMode.id === mode.id;
+                          return (
+                            <button
+                              key={mode.id}
+                              type="button"
+                              onClick={() => {
+                                setCurrentMode(mode);
+                                setModeDropdownOpen(false);
+                              }}
+                              className={`w-full flex items-start gap-3 px-4 py-3 hover:bg-[#21262d] transition-colors ${isActive ? 'bg-[#21262d]' : ''}`}
+                            >
+                              <div className="w-8 h-8 bg-[#0d1117] rounded-lg flex items-center justify-center flex-shrink-0">
+                                <Icon className={`w-4 h-4 ${isActive ? 'text-emerald-400' : 'text-gray-400'}`} />
+                              </div>
+                              <div className="text-left flex-1">
+                                <div className={`font-medium text-sm ${isActive ? 'text-white' : 'text-gray-300'}`}>
+                                  {mode.name}
+                                </div>
+                                <div className="text-xs text-gray-500">{mode.description}</div>
+                              </div>
+                              {isActive && <Check className="w-4 h-4 text-emerald-400 mt-1" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                   
+                  {/* Input */}
                   <input
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder={
-                      currentMode.id === 'rag' 
-                        ? "Ask about your documents..." 
-                        : currentMode.id === 'agent'
-                        ? "Try: 'What is 25 * 17?' or 'Search for latest AI news'"
-                        : "Message NexusAI..."
-                    }
-                    className="flex-1 px-4 py-3 bg-transparent focus:outline-none text-slate-800 placeholder-slate-400"
+                    placeholder="Send a message..."
+                    className="flex-1 bg-transparent px-3 py-2 text-white placeholder-gray-500 focus:outline-none text-sm"
                   />
                   
+                  {/* Settings */}
+                  <button 
+                    type="button"
+                    className="p-2.5 hover:bg-[#21262d] rounded-lg text-gray-500 hover:text-white transition-colors"
+                  >
+                    <Settings className="w-5 h-5" />
+                  </button>
+                  
+                  {/* Send button */}
                   <button 
                     type="submit"
                     disabled={!input.trim() || loading}
-                    className={`p-3 rounded-xl text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed ${getModeColors(currentMode, 'bg')} hover:opacity-90 shadow-md`}
+                    className="p-2.5 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-white transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                   >
                     <Send className="w-5 h-5" />
                   </button>
@@ -540,9 +873,9 @@ const ChatInterface = () => {
               </div>
             </form>
             
-            <div className="text-center text-xs text-slate-400 mt-3">
-              NexusAI can make mistakes. Consider checking important information.
-            </div>
+            <p className="text-center text-xs text-gray-600 mt-3">
+              NexusAI may produce inaccurate information about people, places, or facts.
+            </p>
           </div>
         </div>
       </main>
