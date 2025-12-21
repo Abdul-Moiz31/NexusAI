@@ -1,230 +1,906 @@
-# 🎓 NexusAI: Advanced AI Engineering Masterclass
+# 🧠 NexusAI - Advanced AI Research & Tutoring System
 
-Welcome to **NexusAI**! 🚀
+<div align="center">
 
-This project is a comprehensive **"Hands-On" Masterclass** in AI Engineering. It is designed to take you from a beginner to an advanced AI Engineer by building a production-grade system.
+![NexusAI Banner](https://img.shields.io/badge/NexusAI-Advanced%20AI%20Platform-emerald?style=for-the-badge&logo=openai&logoColor=white)
 
-It covers everything from **FastAPI** backends to **Advanced Multi-Agent Orchestration** using LangGraph.
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-18.2+-61DAFB?style=flat-square&logo=react&logoColor=black)](https://reactjs.org)
+[![LangChain](https://img.shields.io/badge/LangChain-0.3+-1C3C3C?style=flat-square&logo=chainlink&logoColor=white)](https://langchain.com)
+[![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-FF6B6B?style=flat-square)](https://langchain-ai.github.io/langgraph/)
 
----
+**A full-stack AI application showcasing LangChain, LangGraph, RAG, and Multi-Agent systems**
 
-## 📑 Table of Contents
-1.  [System Architecture](#-system-architecture)
-2.  [Project Structure](#-project-structure)
-3.  [Deep Dive: The Components](#-deep-dive-the-components)
-    *   [1. The Backend (FastAPI)](#1-the-backend-fastapi)
-    *   [2. The Database (SQLModel)](#2-the-database-sqlmodel)
-    *   [3. LLM Fundamentals & Streaming](#3-llm-fundamentals--streaming)
-    *   [4. RAG (Retrieval Augmented Generation)](#4-rag-retrieval-augmented-generation)
-    *   [5. AI Agents & Tools](#5-ai-agents--tools)
-    *   [6. Multi-Agent Orchestration (LangGraph)](#6-multi-agent-orchestration-langgraph)
-4.  [Data Flow Diagram](#-data-flow-diagram)
-5.  [How to Run](#-how-to-run)
-6.  [Experiments to Try](#-experiments-to-try)
+[Features](#-features) • [Architecture](#-architecture) • [Installation](#-installation) • [Usage](#-usage) • [API Reference](#-api-reference)
+
+</div>
 
 ---
 
-## 🏗️ System Architecture
+## 📋 Table of Contents
 
-This diagram shows the high-level design of NexusAI.
+1. [Overview](#-overview)
+2. [Features](#-features)
+3. [Architecture](#-architecture)
+4. [System Design](#-system-design)
+5. [Data Flow Diagrams](#-data-flow-diagrams)
+6. [Technology Stack](#-technology-stack)
+7. [Installation](#-installation)
+8. [Configuration](#-configuration)
+9. [Usage Guide](#-usage-guide)
+10. [API Reference](#-api-reference)
+11. [Design Patterns](#-design-patterns)
+12. [Authentication](#-authentication-clerk-integration)
+13. [Contributing](#-contributing)
 
-```mermaid
-graph TD
-    %% Nodes
-    User([👤 User])
-    Frontend[🖥️ Frontend (HTML/JS)]
-    Backend[⚙️ Backend (FastAPI)]
-    
-    subgraph "🧠 AI Core"
-        Router{🔀 Router}
-        Chat[💬 Basic Chat]
-        RAG[📚 RAG Engine]
-        Agent[🕵️ Multi-Agent System]
-    end
-    
-    subgraph "💾 Data Layer"
-        SQL[(🗄️ SQLite DB)]
-        Vector[(💠 ChromaDB)]
-    end
-    
-    subgraph "🛠️ External Tools"
-        OpenAI[☁️ OpenAI API]
-        Tavily[🌐 Web Search]
-    end
+---
 
-    %% Connections
-    User <--> Frontend
-    Frontend <-->|REST API / SSE| Backend
-    Backend <--> Router
-    
-    Router -->|Simple Query| Chat
-    Router -->|Document Q&A| RAG
-    Router -->|Complex Task| Agent
-    
-    Chat <--> OpenAI
-    
-    RAG <-->|Embeddings| OpenAI
-    RAG <-->|Retrieve| Vector
-    
-    Agent <-->|Plan/Reason| OpenAI
-    Agent <-->|Search| Tavily
-    Agent <-->|Calc/Tools| Backend
-    
-    Backend <-->|History| SQL
+## 🎯 Overview
+
+**NexusAI** is a production-ready AI platform that demonstrates advanced concepts in modern AI application development:
+
+- **🗣️ Basic Chat**: Real-time streaming conversations with GPT-4o
+- **🤖 AI Agents**: Autonomous agents with tools (Calculator, Web Search, Knowledge Base)
+- **🕸️ Multi-Agent Systems**: Supervisor-Worker pattern using LangGraph
+- **📚 RAG (Retrieval-Augmented Generation)**: Query your own documents with semantic search
+
+### Why NexusAI?
+
+| Problem | Solution |
+|---------|----------|
+| Generic AI chatbots lack specialized capabilities | Multiple modes tailored for different use cases |
+| Agents can't access real-time data | Web search and knowledge base tools |
+| LLMs can't answer questions about your documents | RAG with vector embeddings |
+| Complex queries need multiple specialists | Multi-agent orchestration |
+
+---
+
+## ✨ Features
+
+### 🗣️ Basic Chat Mode
+- **Real-time streaming** responses using Server-Sent Events (SSE)
+- **Markdown rendering** with syntax highlighting
+- **Conversation history** persistence
+- **Context-aware** responses
+
+### 🤖 Agent Mode (Tools)
+- **Calculator**: Mathematical operations
+- **Web Search**: Real-time information via Tavily API
+- **Knowledge Base**: RAG-powered document search
+- **ReAct Pattern**: Reasoning and Acting loop
+
+### 🕸️ Multi-Agent Mode
+- **Supervisor Agent**: Routes queries to specialists
+- **Researcher Agent**: Web search expert
+- **Tutor Agent**: Explains concepts clearly
+- **LangGraph Orchestration**: State-machine based workflow
+
+### 📚 RAG Mode
+- **Document Upload**: PDF and TXT support
+- **Chunking**: Intelligent text splitting
+- **Vector Embeddings**: OpenAI text-embedding-3-small
+- **ChromaDB**: Persistent vector storage
+- **Semantic Search**: Meaning-based retrieval
+
+### 💼 Application Features
+- **Dark Theme UI**: Modern ChatGPT-like interface
+- **Responsive Design**: Mobile-first approach
+- **Drag & Drop**: File uploads anywhere
+- **Chat History**: Persistent conversations
+- **Settings Panel**: Customizable preferences
+- **Authentication Ready**: Clerk integration support
+
+---
+
+## 🏗️ Architecture
+
+### High-Level Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                 CLIENT LAYER                                 │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │                        React Frontend (Vite)                          │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐   │  │
+│  │  │  Chat Mode  │  │ Agent Mode  │  │ Multi-Agent │  │  RAG Mode   │   │  │
+│  │  │   (Basic)   │  │  (Tools)    │  │   (Graph)   │  │   (Docs)    │   │  │
+│  │  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘   │  │
+│  └─────────┼────────────────┼────────────────┼────────────────┼──────────┘  │
+│            │                │                │                │             │
+│            └────────────────┴────────────────┴────────────────┘             │
+│                                      │                                       │
+│                               HTTP/SSE Requests                              │
+└──────────────────────────────────────┼───────────────────────────────────────┘
+                                       │
+                                       ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                                 API LAYER                                    │
+│  ┌───────────────────────────────────────────────────────────────────────┐  │
+│  │                     FastAPI Application (main.py)                     │  │
+│  │  ┌────────────────────────────────────────────────────────────────┐   │  │
+│  │  │                      API Router (/api/v1)                       │   │  │
+│  │  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────────────┐ │   │  │
+│  │  │  │ /chat/*  │  │/agent/*  │  │ /graph/* │  │     /rag/*       │ │   │  │
+│  │  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────────┬─────────┘ │   │  │
+│  │  └───────┼─────────────┼─────────────┼─────────────────┼──────────┘   │  │
+│  └──────────┼─────────────┼─────────────┼─────────────────┼──────────────┘  │
+└─────────────┼─────────────┼─────────────┼─────────────────┼──────────────────┘
+              │             │             │                 │
+              ▼             ▼             ▼                 ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              SERVICE LAYER                                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────────────────┐  │
+│  │   LLM Service   │  │  Agent Service  │  │       RAG Service           │  │
+│  │  (llm_service)  │  │ (simple_agent)  │  │     (rag_service)           │  │
+│  │                 │  │                 │  │                             │  │
+│  │  • Streaming    │  │  • ReAct Agent  │  │  • Document Ingestion       │  │
+│  │  • Chat         │  │  • Tools        │  │  • Chunking                 │  │
+│  │  • Structured   │  │  • Executor     │  │  • Embedding                │  │
+│  └────────┬────────┘  └────────┬────────┘  └──────────────┬──────────────┘  │
+│           │                    │                          │                  │
+│           │           ┌────────┴────────┐                 │                  │
+│           │           │  Graph Service  │                 │                  │
+│           │           │    (graph.py)   │                 │                  │
+│           │           │                 │                 │                  │
+│           │           │  • Supervisor   │                 │                 │
+│           │           │  • Researcher   │                 │                  │
+│           │           │  • Tutor        │                 │                  │
+│           │           └─────────────────┘                 │                  │
+└───────────┼─────────────────────────────────────────────────────────────────┘
+            │                                               │
+            ▼                                               ▼
+┌───────────────────────────────┐        ┌────────────────────────────────────┐
+│      EXTERNAL SERVICES        │        │          DATA LAYER                │
+│  ┌─────────────────────────┐  │        │  ┌────────────────────────────┐    │
+│  │      OpenAI API         │  │        │  │     SQLite Database        │    │
+│  │  • GPT-4o (Chat)        │  │        │  │  • Conversations           │    │
+│  │  • text-embedding-3     │  │        │  │  • Messages                │    │
+│  └─────────────────────────┘  │        │  └────────────────────────────┘    │
+│  ┌─────────────────────────┐  │        │  ┌────────────────────────────┐    │
+│  │     Tavily API          │  │        │  │     ChromaDB               │    │
+│  │  • Web Search           │  │        │  │  • Vector Embeddings       │    │
+│  └─────────────────────────┘  │        │  │  • Similarity Search       │    │
+└───────────────────────────────┘        │  └────────────────────────────┘    │
+                                         └────────────────────────────────────┘
+```
+
+### Component Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                            FRONTEND COMPONENTS                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │                          App.jsx                                  │   │
+│  │                    (Router + AuthProvider)                        │   │
+│  └────────────────────────────┬─────────────────────────────────────┘   │
+│                               │                                          │
+│           ┌───────────────────┼───────────────────┐                      │
+│           │                   │                   │                      │
+│           ▼                   ▼                   ▼                      │
+│  ┌────────────────┐  ┌────────────────┐  ┌──────────────────┐           │
+│  │  LandingPage   │  │ ChatInterface  │  │  SettingsModal   │           │
+│  │                │  │                │  │                  │           │
+│  │  • Hero        │  │  • Sidebar     │  │  • General       │           │
+│  │  • Features    │  │  • Messages    │  │  • Account       │           │
+│  │  • About       │  │  • Input       │  │  • Privacy       │           │
+│  │  • Contact     │  │  • Modes       │  │  • Notifications │           │
+│  └────────────────┘  └────────────────┘  └──────────────────┘           │
+│                               │                                          │
+│                               ▼                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │                      MessageBubble.jsx                            │   │
+│  │              (Markdown rendering, Copy, Feedback)                 │   │
+│  └──────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                            BACKEND COMPONENTS                            │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌──────────────────────────────────────────────────────────────────┐   │
+│  │                          main.py                                  │   │
+│  │                    (FastAPI Application)                          │   │
+│  └────────────────────────────┬─────────────────────────────────────┘   │
+│                               │                                          │
+│  ┌────────────────────────────┴─────────────────────────────────────┐   │
+│  │                        app/api/api.py                             │   │
+│  │                      (API Router Hub)                             │   │
+│  └────────────────────────────┬─────────────────────────────────────┘   │
+│                               │                                          │
+│      ┌────────────────────────┼────────────────────────┐                 │
+│      │            │           │           │            │                 │
+│      ▼            ▼           ▼           ▼            ▼                 │
+│  ┌────────┐  ┌────────┐  ┌────────┐  ┌────────┐  ┌──────────────┐       │
+│  │ chat.py│  │agent.py│  │graph.py│  │ rag.py │  │conversations │       │
+│  │        │  │        │  │        │  │        │  │     .py      │       │
+│  └───┬────┘  └───┬────┘  └───┬────┘  └───┬────┘  └──────────────┘       │
+│      │           │           │           │                               │
+│      ▼           ▼           ▼           ▼                               │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │                      app/services/                               │    │
+│  │  ┌───────────────┐  ┌───────────────┐  ┌────────────────────┐   │    │
+│  │  │  llm_service  │  │ simple_agent  │  │    rag_service     │   │    │
+│  │  │               │  │               │  │                    │   │    │
+│  │  │ • get_chat    │  │ • run_agent   │  │ • ingest_file      │   │    │
+│  │  │ • stream_chat │  │ • ReAct loop  │  │ • query_rag        │   │    │
+│  │  └───────────────┘  └───────────────┘  └────────────────────┘   │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📂 Project Structure
+## 🔄 System Design
 
-Understanding the folder structure is key to navigating the codebase.
+### Entity Relationship Diagram (ERD)
 
-```text
-nexus_ai/
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           DATABASE SCHEMA                                │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  ┌────────────────────────────┐          ┌─────────────────────────┐    │
+│  │       CONVERSATION         │          │        MESSAGE          │    │
+│  ├────────────────────────────┤          ├─────────────────────────┤    │
+│  │ id          INTEGER PK     │◄────────┐│ id            INTEGER PK│    │
+│  │ title       VARCHAR(255)   │         ││ role          VARCHAR   │    │
+│  │ mode        VARCHAR(50)    │         ││ content       TEXT      │    │
+│  │ created_at  DATETIME       │         ││ conversation_id INTEGER │────┤
+│  │ updated_at  DATETIME       │         ││ created_at    DATETIME  │    │
+│  └────────────────────────────┘         ││ updated_at    DATETIME  │    │
+│                                          │└─────────────────────────┘    │
+│                                          │                               │
+│                                          │ FK: conversation_id           │
+│                                          │     REFERENCES conversation(id)│
+│                                          │     ON DELETE CASCADE         │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         VECTOR DATABASE (ChromaDB)                       │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│  Collection: nexus_knowledge                                             │
+│  ┌─────────────────────────────────────────────────────────────────┐    │
+│  │  Document Chunks                                                 │    │
+│  │  ┌─────────────────────────────────────────────────────────┐    │    │
+│  │  │  id: unique_chunk_id                                     │    │    │
+│  │  │  embedding: [0.123, -0.456, 0.789, ...] (1536 dimensions)│    │    │
+│  │  │  document: "chunk content text..."                       │    │    │
+│  │  │  metadata: {source: "document.pdf", page: 1}             │    │    │
+│  │  └─────────────────────────────────────────────────────────┘    │    │
+│  └─────────────────────────────────────────────────────────────────┘    │
+│                                                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 📊 Data Flow Diagrams
+
+### DFD Level 0 - Context Diagram
+
+```
+                                    ┌─────────────────┐
+                                    │                 │
+         User Query ───────────────►│    NexusAI      │───────────► AI Response
+                                    │     System      │
+         Documents ────────────────►│                 │───────────► Stored Data
+                                    │                 │
+                                    └─────────────────┘
+                                           │ ▲
+                                           │ │
+                                           ▼ │
+                                    ┌─────────────────┐
+                                    │   External      │
+                                    │   Services      │
+                                    │  (OpenAI,       │
+                                    │   Tavily)       │
+                                    └─────────────────┘
+```
+
+### DFD Level 1 - Main Processes
+
+```
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                              DFD Level 1                                       │
+├───────────────────────────────────────────────────────────────────────────────┤
+│                                                                                │
+│     ┌──────┐                                                                   │
+│     │ User │                                                                   │
+│     └───┬──┘                                                                   │
+│         │                                                                      │
+│         │ Query/Message                                                        │
+│         ▼                                                                      │
+│   ┌───────────────┐    Route Request    ┌───────────────────────────────────┐ │
+│   │  1.0 Process  │───────────────────►│          2.0 Chat Modes           │ │
+│   │   Request     │                     │  ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐  │ │
+│   │               │◄───────────────────│  │2.1  │ │2.2  │ │2.3  │ │2.4  │  │ │
+│   └───────────────┘    Response         │  │Chat │ │Agent│ │Graph│ │RAG  │  │ │
+│         │                               │  └──┬──┘ └──┬──┘ └──┬──┘ └──┬──┘  │ │
+│         │ Store                         └─────┼──────┼──────┼──────┼───────┘ │
+│         ▼                                     │      │      │      │         │
+│   ┌───────────────┐                           │      │      │      │         │
+│   │  3.0 Data     │                           ▼      ▼      ▼      ▼         │
+│   │   Storage     │                     ┌───────────────────────────────────┐ │
+│   │               │                     │         4.0 AI Services           │ │
+│   │ ┌───────────┐ │                     │  ┌─────────┐  ┌─────────────────┐ │ │
+│   │ │Conversations│                     │  │ OpenAI  │  │    Tavily       │ │ │
+│   │ │ & Messages │ │                     │  │  API    │  │   Search API    │ │ │
+│   │ └───────────┘ │                     │  └─────────┘  └─────────────────┘ │ │
+│   │ ┌───────────┐ │                     └───────────────────────────────────┘ │
+│   │ │ ChromaDB  │ │                                                           │
+│   │ │ (Vectors) │ │                                                           │
+│   │ └───────────┘ │                                                           │
+│   └───────────────┘                                                           │
+│                                                                                │
+└───────────────────────────────────────────────────────────────────────────────┘
+```
+
+### DFD Level 2 - RAG Process Detail
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         RAG PROCESS FLOW (2.4)                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                        DOCUMENT INGESTION                              │ │
+│  │                                                                        │ │
+│  │   ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────────┐ │ │
+│  │   │  Upload  │────►│  Load    │────►│  Chunk   │────►│   Embed &    │ │ │
+│  │   │   File   │     │ Document │     │  Text    │     │    Store     │ │ │
+│  │   │          │     │          │     │          │     │              │ │ │
+│  │   │ PDF/TXT  │     │PyPDFLoader│    │Recursive │     │ ChromaDB +   │ │ │
+│  │   │          │     │TextLoader │    │CharSplit │     │ OpenAI Embed │ │ │
+│  │   └──────────┘     └──────────┘     └──────────┘     └──────────────┘ │ │
+│  │        │                                                     │        │ │
+│  │        │ Parameters:                                         │        │ │
+│  │        │ • chunk_size: 1000                                  ▼        │ │
+│  │        │ • chunk_overlap: 200                          ┌──────────┐   │ │
+│  │        │                                               │ Vector   │   │ │
+│  │        │                                               │   DB     │   │ │
+│  │        │                                               └──────────┘   │ │
+│  └────────┼───────────────────────────────────────────────────────────────┘ │
+│           │                                                                  │
+│  ┌────────┼───────────────────────────────────────────────────────────────┐ │
+│  │        │              QUERY PROCESS                                    │ │
+│  │        │                                                               │ │
+│  │   ┌────▼─────┐     ┌──────────┐     ┌──────────┐     ┌──────────────┐ │ │
+│  │   │  User    │────►│  Embed   │────►│ Similarity│────►│  Generate   │ │ │
+│  │   │  Query   │     │  Query   │     │  Search   │     │  Response   │ │ │
+│  │   │          │     │          │     │  (k=4)    │     │  with LLM   │ │ │
+│  │   └──────────┘     └──────────┘     └──────────┘     └──────────────┘ │ │
+│  │                                           │                   │        │ │
+│  │                                           ▼                   ▼        │ │
+│  │                                     ┌──────────┐        ┌──────────┐   │ │
+│  │                                     │ Relevant │        │ Answer + │   │ │
+│  │                                     │  Chunks  │───────►│ Sources  │   │ │
+│  │                                     └──────────┘        └──────────┘   │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Multi-Agent Graph Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        MULTI-AGENT GRAPH (LangGraph)                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│                              ┌─────────────────┐                             │
+│                              │      START      │                             │
+│                              └────────┬────────┘                             │
+│                                       │                                      │
+│                                       ▼                                      │
+│                         ┌─────────────────────────┐                          │
+│                         │       SUPERVISOR        │                          │
+│                         │                         │                          │
+│                         │  • Analyzes user query  │                          │
+│                         │  • Decides next agent   │                          │
+│                         │  • Routes to specialist │                          │
+│                         └───────────┬─────────────┘                          │
+│                                     │                                        │
+│                    ┌────────────────┼────────────────┐                       │
+│                    │                │                │                       │
+│            "Researcher"        "Tutor"          "FINISH"                     │
+│                    │                │                │                       │
+│                    ▼                ▼                ▼                       │
+│         ┌─────────────────┐ ┌─────────────────┐ ┌─────────┐                  │
+│         │   RESEARCHER    │ │     TUTOR       │ │   END   │                  │
+│         │                 │ │                 │ │         │                  │
+│         │ • Web Search    │ │ • Knowledge Base│ └─────────┘                  │
+│         │ • Find facts    │ │ • Explain simply│                              │
+│         │ • Return results│ │ • Teach concepts│                              │
+│         └────────┬────────┘ └────────┬────────┘                              │
+│                  │                   │                                       │
+│                  │                   │                                       │
+│                  └───────────────────┘                                       │
+│                            │                                                 │
+│                            │ Return to Supervisor                            │
+│                            ▼                                                 │
+│                  ┌─────────────────┐                                         │
+│                  │   SUPERVISOR    │ ─────► Decide if done                   │
+│                  └─────────────────┘        or route again                   │
+│                                                                              │
+│  ═══════════════════════════════════════════════════════════════════════    │
+│                                                                              │
+│  State Definition:                                                           │
+│  ┌─────────────────────────────────────────────────────────────────────┐    │
+│  │  AgentState = {                                                      │    │
+│  │      messages: Sequence[BaseMessage],  # Conversation history        │    │
+│  │      next_step: str                    # "Researcher"|"Tutor"|"FINISH"│   │
+│  │  }                                                                   │    │
+│  └─────────────────────────────────────────────────────────────────────┘    │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Agent ReAct Pattern Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        REACT AGENT PATTERN                                   │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│    User: "What is 25 * 17 and search for latest AI news"                    │
+│                                                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                        THOUGHT                                   │      │
+│    │  "I need to calculate 25 * 17 first, then search for AI news"   │      │
+│    └──────────────────────────┬──────────────────────────────────────┘      │
+│                               │                                              │
+│                               ▼                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                        ACTION                                    │      │
+│    │  Use tool: calculator("25 * 17")                                │      │
+│    └──────────────────────────┬──────────────────────────────────────┘      │
+│                               │                                              │
+│                               ▼                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                      OBSERVATION                                 │      │
+│    │  Result: 425                                                     │      │
+│    └──────────────────────────┬──────────────────────────────────────┘      │
+│                               │                                              │
+│                               ▼                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                        THOUGHT                                   │      │
+│    │  "Got the calculation result. Now searching for AI news"        │      │
+│    └──────────────────────────┬──────────────────────────────────────┘      │
+│                               │                                              │
+│                               ▼                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                        ACTION                                    │      │
+│    │  Use tool: web_search("latest AI news 2024")                    │      │
+│    └──────────────────────────┬──────────────────────────────────────┘      │
+│                               │                                              │
+│                               ▼                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                      OBSERVATION                                 │      │
+│    │  Search results: [...]                                          │      │
+│    └──────────────────────────┬──────────────────────────────────────┘      │
+│                               │                                              │
+│                               ▼                                              │
+│    ┌─────────────────────────────────────────────────────────────────┐      │
+│    │                     FINAL ANSWER                                 │      │
+│    │  "25 * 17 = 425. Here are the latest AI news: ..."             │      │
+│    └─────────────────────────────────────────────────────────────────┘      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🛠️ Technology Stack
+
+### Backend
+
+| Technology | Purpose | Why We Use It |
+|------------|---------|---------------|
+| **Python 3.11+** | Core language | Modern async support, type hints |
+| **FastAPI** | Web framework | Async, automatic OpenAPI docs, fast |
+| **LangChain** | LLM framework | Chain composition, tool integration |
+| **LangGraph** | Agent orchestration | State machines, multi-agent systems |
+| **SQLModel** | ORM | Combines SQLAlchemy + Pydantic |
+| **ChromaDB** | Vector database | Simple, embedded, persistent |
+| **OpenAI API** | LLM provider | GPT-4o, embeddings |
+| **Tavily API** | Web search | Real-time search for agents |
+
+### Frontend
+
+| Technology | Purpose | Why We Use It |
+|------------|---------|---------------|
+| **React 18** | UI framework | Component-based, large ecosystem |
+| **Vite** | Build tool | Fast HMR, modern bundling |
+| **Tailwind CSS** | Styling | Utility-first, rapid development |
+| **Framer Motion** | Animations | Declarative, performant |
+| **React Router** | Routing | SPA navigation |
+| **Lucide React** | Icons | Beautiful, consistent icons |
+| **React Markdown** | Markdown | Render AI responses |
+
+---
+
+## 📦 Installation
+
+### Prerequisites
+
+- Python 3.11 or higher
+- Node.js 18 or higher
+- OpenAI API key
+- (Optional) Tavily API key for web search
+
+### Quick Start
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/yourusername/NexusAI.git
+cd NexusAI
+
+# 2. Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
+
+# 3. Install Python dependencies
+pip install -r requirements.txt
+
+# 4. Create .env file
+cp .env.example .env
+# Edit .env and add your API keys
+
+# 5. Install frontend dependencies
+cd frontend
+npm install
+
+# 6. Start the backend (from root)
+cd ..
+python main.py
+
+# 7. Start the frontend (new terminal)
+cd frontend
+npm run dev
+```
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+# Required
+OPENAI_API_KEY=sk-your-openai-api-key
+
+# Optional (for web search)
+TAVILY_API_KEY=tvly-your-tavily-key
+
+# Database (default is SQLite)
+DATABASE_URL=sqlite:///./data/nexus.db
+```
+
+---
+
+## ⚙️ Configuration
+
+### Backend Configuration (`app/core/config.py`)
+
+```python
+class Settings(BaseSettings):
+    OPENAI_API_KEY: str
+    TAVILY_API_KEY: str = ""
+    DATABASE_URL: str = "sqlite:///./data/nexus.db"
+    
+    class Config:
+        env_file = ".env"
+```
+
+### Frontend Configuration (`vite.config.js`)
+
+```javascript
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      }
+    }
+  }
+})
+```
+
+---
+
+## 📖 Usage Guide
+
+### Basic Chat Mode
+
+1. Open the application at `http://localhost:5173`
+2. Click "Try Now" or navigate to `/chat`
+3. Type your message and press Enter
+4. Responses stream in real-time
+
+### Agent Mode (Tools)
+
+1. Click the ⚡ icon in the input area
+2. Try queries like:
+   - "Calculate 25 * 17 + 89"
+   - "Search for latest AI news"
+   - "What's in my knowledge base?"
+
+### Multi-Agent Mode
+
+1. Click the 🕸️ icon
+2. Ask complex queries that benefit from multiple specialists
+3. The Supervisor routes to Researcher or Tutor automatically
+
+### RAG Mode
+
+1. Click the 📚 icon
+2. Upload documents (PDF or TXT):
+   - Click the paperclip icon, or
+   - Drag and drop files anywhere
+3. Ask questions about your documents
+4. Sources are shown with each answer
+
+---
+
+## 📡 API Reference
+
+### Chat Endpoints
+
+#### `POST /api/v1/chat`
+Basic chat (waits for full response)
+
+```json
+{
+  "message": "Hello, how are you?",
+  "system_prompt": "You are a helpful assistant.",
+  "conversation_id": 1
+}
+```
+
+#### `POST /api/v1/chat/stream`
+Streaming chat (Server-Sent Events)
+
+```json
+{
+  "message": "Explain quantum computing"
+}
+```
+
+### Agent Endpoints
+
+#### `POST /api/v1/agent/chat`
+Run the ReAct agent with tools
+
+```json
+{
+  "message": "Calculate 100 / 5 and search for Python tutorials",
+  "history": []
+}
+```
+
+### Graph Endpoints
+
+#### `POST /api/v1/agent/graph`
+Run the multi-agent graph
+
+```json
+{
+  "message": "Research the history of machine learning"
+}
+```
+
+### RAG Endpoints
+
+#### `POST /api/v1/rag/ingest`
+Upload and process a document
+
+```
+Content-Type: multipart/form-data
+file: <binary>
+```
+
+#### `POST /api/v1/rag/query`
+Query the knowledge base
+
+```json
+{
+  "query": "What does the document say about X?"
+}
+```
+
+### Conversation Endpoints
+
+#### `GET /api/v1/conversations`
+List all conversations
+
+#### `POST /api/v1/conversations`
+Create a new conversation
+
+#### `GET /api/v1/conversations/{id}`
+Get a specific conversation with messages
+
+#### `PATCH /api/v1/conversations/{id}`
+Update conversation title/mode
+
+#### `DELETE /api/v1/conversations/{id}`
+Delete a conversation
+
+---
+
+## 🎨 Design Patterns
+
+### 1. Repository Pattern
+Database access is abstracted through SQLModel sessions.
+
+### 2. Service Layer Pattern
+Business logic is separated into services (`llm_service.py`, `rag_service.py`).
+
+### 3. Dependency Injection
+FastAPI's `Depends()` for database sessions.
+
+### 4. State Machine Pattern
+LangGraph uses state machines for multi-agent orchestration.
+
+### 5. Factory Pattern
+Agent and tool creation follows factory patterns.
+
+### 6. Observer Pattern
+React's state management for UI updates.
+
+### 7. Strategy Pattern
+Different chat modes implement different strategies.
+
+### 8. Command Pattern
+Tools in agents act as commands.
+
+---
+
+## 🔐 Authentication (Clerk Integration)
+
+### Step 1: Install Clerk
+
+```bash
+cd frontend
+npm install @clerk/clerk-react
+```
+
+### Step 2: Configure Environment
+
+Create `frontend/.env`:
+
+```env
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_your_key
+```
+
+### Step 3: Update `main.jsx`
+
+```jsx
+import { ClerkProvider } from '@clerk/clerk-react';
+
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <App />
+  </ClerkProvider>
+);
+```
+
+### Step 4: Protect Routes
+
+```jsx
+import { SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+
+function ProtectedPage() {
+  return (
+    <>
+      <SignedIn>
+        <ChatInterface />
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn />
+      </SignedOut>
+    </>
+  );
+}
+```
+
+---
+
+## 📁 Project Structure
+
+```
+NexusAI/
+├── main.py                    # FastAPI entry point
+├── requirements.txt           # Python dependencies
+├── .env                       # Environment variables
 ├── app/
-│   ├── api/                # 🌐 API Layer
-│   │   ├── endpoints/      # Individual route handlers (chat, rag, agent)
-│   │   └── api.py          # Main router aggregator
-│   ├── core/               # ⚙️ Core Configuration
-│   │   └── config.py       # Settings (API Keys, DB URL)
-│   ├── db/                 # 💾 Database Layer
-│   │   └── session.py      # DB Connection & Session management
-│   ├── models/             # 📦 Data Models
-│   │   ├── chat.py         # Database Tables (Conversation, Message)
-│   │   └── structured.py   # Pydantic Models for LLM Output
-│   ├── services/           # 🧠 Business Logic
-│   │   ├── llm_service.py  # OpenAI wrapper & Streaming logic
-│   │   └── rag_service.py  # Document ingestion & Retrieval logic
-│   └── agents/             # 🕵️ Agentic Logic
-│       ├── tools.py        # Tools (Calculator, Search, RAG)
-│       ├── simple_agent.py # Single Agent (LangGraph React)
-│       └── graph.py        # Multi-Agent Supervisor Graph
-├── data/                   # 📁 Local Storage (SQLite & ChromaDB)
-├── static/                 # 🎨 Frontend Assets (index.html)
-├── main.py                 # 🚀 Application Entry Point
-└── requirements.txt        # 📦 Dependencies
+│   ├── api/
+│   │   ├── api.py             # Router aggregation
+│   │   └── endpoints/
+│   │       ├── chat.py        # Chat endpoints
+│   │       ├── agent.py       # Agent endpoints
+│   │       ├── graph.py       # Graph endpoints
+│   │       ├── rag.py         # RAG endpoints
+│   │       └── conversations.py
+│   ├── agents/
+│   │   ├── simple_agent.py    # ReAct agent
+│   │   ├── graph.py           # Multi-agent graph
+│   │   └── tools.py           # Agent tools
+│   ├── core/
+│   │   └── config.py          # Settings
+│   ├── db/
+│   │   └── session.py         # Database session
+│   ├── models/
+│   │   └── chat.py            # SQLModel models
+│   └── services/
+│       ├── llm_service.py     # LLM interactions
+│       └── rag_service.py     # RAG pipeline
+├── data/
+│   ├── nexus.db               # SQLite database
+│   └── chroma_db/             # Vector storage
+├── frontend/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── tailwind.config.js
+│   └── src/
+│       ├── App.jsx
+│       ├── main.jsx
+│       ├── context/
+│       │   └── AuthContext.jsx
+│       └── components/
+│           ├── chat/
+│           │   ├── ChatInterface.jsx
+│           │   └── MessageBubble.jsx
+│           ├── auth/
+│           │   └── SignUpModal.jsx
+│           ├── settings/
+│           │   └── SettingsModal.jsx
+│           ├── landing/
+│           └── layout/
+└── README.md
 ```
 
 ---
 
-## 🔍 Deep Dive: The Components
+## 🤝 Contributing
 
-### 1. The Backend (FastAPI)
-*   **File**: `main.py`
-*   **Concept**: We use **FastAPI** because it is the standard for AI applications. It supports **Asynchronous** operations (`async def`), which is crucial when waiting for slow LLM responses.
-*   **Key Feature**: `lifespan` context manager handles database creation on startup automatically.
-
-### 2. The Database (SQLModel)
-*   **File**: `app/models/chat.py`
-*   **Concept**: We use **SQLModel** (built on SQLAlchemy + Pydantic).
-*   **Why**: It allows us to define database tables (`Conversation`, `Message`) using standard Python classes.
-*   **Usage**: We store every chat message to give the AI "Memory" of past conversations.
-
-### 3. LLM Fundamentals & Streaming
-*   **File**: `app/services/llm_service.py`
-*   **Concept**:
-    *   **Streaming**: Instead of waiting 5 seconds for the full answer, we send it character-by-character using `yield`. This makes the app feel instant.
-    *   **Structured Outputs**: We use `llm.with_structured_output(PydanticModel)` to force the AI to return JSON. This is critical for building reliable software that parses AI responses.
-
-### 4. RAG (Retrieval Augmented Generation)
-*   **File**: `app/services/rag_service.py`
-*   **Concept**: Giving the AI a "Textbook".
-*   **The Pipeline**:
-    1.  **Ingestion**: We load a PDF or Text file.
-    2.  **Chunking**: We split the text into 1000-character chunks using `RecursiveCharacterTextSplitter`. *Why?* Because LLMs have a context limit, and we only want to send relevant parts.
-    3.  **Embedding**: We use `OpenAIEmbeddings` to turn text into a list of numbers (Vectors).
-    4.  **Storage**: We save these vectors in **ChromaDB** (a local vector database).
-    5.  **Retrieval**: When you ask a question, we mathematically find the "nearest" vectors (most similar text) and send them to the LLM.
-
-### 5. AI Agents & Tools
-*   **File**: `app/agents/tools.py`
-*   **Concept**: LLMs are just text predictors. They can't do math or search the web. We give them "Tools".
-*   **Tools Implemented**:
-    *   `calculator`: Solves math problems safely.
-    *   `web_search`: Uses **Tavily API** to get real-time information from the internet.
-    *   `knowledge_base`: A tool that wraps our RAG service, allowing the agent to "read" your documents.
-
-### 6. Multi-Agent Orchestration (LangGraph)
-*   **File**: `app/agents/graph.py`
-*   **Concept**: For complex tasks, one agent isn't enough. We use **LangGraph** to build a "Company" of agents.
-*   **Architecture**: **Supervisor-Worker Pattern**.
-    *   **Supervisor (Router)**: An LLM that acts as a manager. It looks at your request and decides: "Does this need the Researcher? Or the Tutor?"
-    *   **Researcher**: A specialized agent that uses the Web Search tool.
-    *   **Tutor**: A specialized agent that explains concepts.
-*   **Flow**: User -> Supervisor -> Researcher -> Supervisor -> Tutor -> User.
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-## 🔄 Data Flow Diagram
+## 📄 License
 
-How does a request travel through the system?
-
-```mermaid
-sequenceDiagram
-    participant U as 👤 User
-    participant F as 🖥️ Frontend
-    participant B as ⚙️ Backend
-    participant A as 🧠 AI Agent
-    participant T as 🛠️ Tools
-
-    U->>F: "Research the history of AI"
-    F->>B: POST /api/agent/graph
-    B->>A: Invoke LangGraph
-    
-    loop Reasoning Loop
-        A->>A: Think (Should I search?)
-        A->>T: Call WebSearch("History of AI")
-        T-->>A: Return Search Results
-        A->>A: Analyze Results
-    end
-    
-    A-->>B: Final Answer
-    B-->>F: JSON Response
-    F-->>U: Display Answer
-```
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🚀 How to Run
+## 🙏 Acknowledgments
 
-1.  **Install Dependencies**:
-    ```bash
-    pip install -r requirements.txt
-    ```
-2.  **Setup Environment**:
-    *   Open `.env`.
-    *   Add `OPENAI_API_KEY=sk-...`
-    *   (Optional) Add `TAVILY_API_KEY=tvly-...` for real search.
-3.  **Run Server**:
-    ```bash
-    python main.py
-    ```
-4.  **Open Application**:
-    *   Frontend: [http://localhost:8000/static/index.html](http://localhost:8000/static/index.html)
-    *   API Docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+- [LangChain](https://langchain.com) - LLM framework
+- [LangGraph](https://langchain-ai.github.io/langgraph/) - Agent orchestration
+- [OpenAI](https://openai.com) - GPT-4o and embeddings
+- [FastAPI](https://fastapi.tiangolo.com) - Modern Python web framework
+- [React](https://react.dev) - UI framework
+- [Tailwind CSS](https://tailwindcss.com) - Styling
 
 ---
 
-## 🧪 Experiments to Try
+<div align="center">
 
-1.  **The "Hallucination" Test**:
-    *   Ask the **Basic Chat**: "What is the latest feature of LangChain released yesterday?" (It will likely hallucinate or say it doesn't know).
-    *   Ask the **Agent**: "Search for the latest LangChain features released yesterday." (It will use the tool and give the correct answer).
+**Built with ❤️ using LangChain, LangGraph, and FastAPI**
 
-2.  **The "Memory" Test**:
-    *   Tell the agent: "My name is Abdul."
-    *   Ask later: "What is my name?" (It should remember).
+[⬆ Back to Top](#-nexusai---advanced-ai-research--tutoring-system)
 
-3.  **The "RAG" Test**:
-    *   Upload a private document (e.g., a resume or a specific article).
-    *   Ask a question that *only* exists in that document.
-
----
-
-## 🎓 Teacher's Note
-This project is built to be **extended**. Here are some challenges for you:
-1.  **Add a new Tool**: Can you add a tool that fetches stock prices?
-2.  **Add a new Agent**: Can you add a "Coder" agent to the graph?
-3.  **Improve Memory**: Can you store the chat history in the SQLite database instead of just in memory?
-
-Happy Coding! 🚀
+</div>
